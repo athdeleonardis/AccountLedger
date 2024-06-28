@@ -1,0 +1,5 @@
+Date,Type,From,To,Amount
+01/01/2024,Add,Any,Alice,100
+02/01/2024,Transfer,Alice,Bob,20
+03/01/2024,Remove,Alice,Any,30
+04/01/2024,Distribute,Alice,Bob:50;Claire:40,Null

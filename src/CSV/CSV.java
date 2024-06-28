@@ -56,8 +56,8 @@ public class CSV {
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < columnNames.size(); i++) {
             stringBuilder.append(columnNames.get(i));
-            if (i != columnNames.size()-1);
-            stringBuilder.append(",");
+            if (i != columnNames.size()-1)
+                stringBuilder.append(",");
         }
         stringBuilder.append("\n");
         for (int i = 0; i < rows.size(); i++) {

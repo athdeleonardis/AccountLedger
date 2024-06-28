@@ -30,3 +30,6 @@ replay_pid*
 
 # Private Files
 data/
+
+# Test Output Files
+sample/output/*

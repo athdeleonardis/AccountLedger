@@ -11,6 +11,7 @@ public class CSV {
     private List<List<String>> rows;
 
     public CSV(String name) {
+        this.name = name;
         nameToColumnMap = new HashMap<>();
         rows = new ArrayList<>();
     }
@@ -24,6 +25,7 @@ public class CSV {
         nameToColumnMap.clear();
         for (int i = 0; i < names.size(); i++) {
             String name = names.get(i);
+            // Sometimes file will start with this invisible character :(
             if (name.startsWith(""+(char)65279))
                 name = name.substring(1);
             nameToColumnMap.put(name, i);

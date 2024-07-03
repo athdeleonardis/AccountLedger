@@ -5,9 +5,11 @@ import java.util.Arrays;
 
 public class CSVFileReader {
     private CSV csv;
+    private boolean readSuccess;
 
     public CSVFileReader setCSV(CSV csv) {
         this.csv = csv;
+        readSuccess = false;
         return this;
     }
 
@@ -25,11 +27,16 @@ public class CSVFileReader {
                 csv.addRow(Arrays.asList(elements));
             }
             fileReader.close();
+            readSuccess = true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return this;
+    }
+
+    public boolean success() {
+        return readSuccess;
     }
 }

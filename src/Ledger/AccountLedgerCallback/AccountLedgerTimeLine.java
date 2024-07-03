@@ -1,17 +1,22 @@
 package Ledger.AccountLedgerCallback;
 
 import CSV.CSV;
+import Ledger.AccountLedger;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class AccountLedgerTimeLine implements AccountLedgerCallback {
+    private AccountLedger accountLedger;
+    private String accountOfInterest;
     private CSV timeline;
     private float total;
     private String currentDate;
 
-    public AccountLedgerTimeLine(String parentName, String startingDate, float startingTotal) {
-        this.timeline = new CSV(parentName + "-" + "TimeLine");
+    public AccountLedgerTimeLine(AccountLedger accountLedger, String accountOfInterest, String csvParentName, String startingDate, float startingTotal) {
+        this.accountLedger = accountLedger;
+        this.accountOfInterest = accountOfInterest;
+        this.timeline = new CSV(csvParentName + "-" + "TimeLine");
         this.timeline.setColumnNames(Arrays.asList("Date", "Amount"));
         this.currentDate = startingDate;
         this.total = startingTotal;
@@ -36,10 +41,14 @@ public class AccountLedgerTimeLine implements AccountLedgerCallback {
         return true;
     }
 
-    @Override
-    public void update(String date, float total) {
+    private void update(String date) {
         updateDate(date);
-        this.total = total;
+        this.total = accountLedger.getAmount(accountOfInterest);
+    }
+
+    @Override
+    public void update(String date, String type, String fromAccount, String toAccount, float amount) {
+        update(date);
     }
 }
 

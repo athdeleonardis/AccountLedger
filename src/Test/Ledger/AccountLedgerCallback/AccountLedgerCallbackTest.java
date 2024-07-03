@@ -23,18 +23,26 @@ public class AccountLedgerCallbackTest {
         System.out.println("Contents of CSV '" + csvLedger.getName() + "':");
         System.out.println(csvLedger.toString());
 
-        AccountLedgerCallbackHandler accountLedgerCallbackHandler = new AccountLedgerCallbackHandler();
-        AccountLedgerTimeLine aliceTimeLine = new AccountLedgerTimeLine("Test-Alice", null, 0);
-        AccountLedgerTimeLine bobTimeLine = new AccountLedgerTimeLine("Test-Bob", null, 0);
-        AccountLedgerTimeLine claireTimeLine = new AccountLedgerTimeLine("Test-Claire", null, 0);
-        accountLedgerCallbackHandler.addCallback("Alice", aliceTimeLine);
-        accountLedgerCallbackHandler.addCallback("Bob", bobTimeLine);
-        accountLedgerCallbackHandler.addCallback("Claire", claireTimeLine);
-        List<AccountLedgerTimeLine> timeLines = Arrays.asList(aliceTimeLine, bobTimeLine, claireTimeLine);
-
-
         AccountLedger accountLedger = new AccountLedger();
-        accountLedgerCallbackHandler.setAccountLedger(accountLedger);
+
+        AccountLedgerCallbackHandler accountLedgerCallbackHandler = new AccountLedgerCallbackHandler();
+        List<AccountLedgerTimeLine> timeLines = new ArrayList<>();
+        {
+            String[] accountsOfInterest = { "Alice", "Bob", "Claire" };
+            for (String account : accountsOfInterest) {
+                AccountLedgerTimeLine timeLine = new AccountLedgerTimeLine(
+                        accountLedger,
+                        account,
+                        "Test-" + account,
+                        null,
+                        0
+                );
+                timeLines.add(timeLine);
+                accountLedgerCallbackHandler.addCallback(account, timeLine);
+            }
+        }
+
+
         for (int row = 0; row < csvLedger.numRows(); row++) {
             String date = csvLedger.getElement(row, "Date");
             String type = csvLedger.getElement(row, "Type");
@@ -45,26 +53,27 @@ public class AccountLedgerCallbackTest {
             switch (type) {
                 case "Add":
                     accountLedger.add(toAccount, Float.parseFloat(amount));
-                    accountLedgerCallbackHandler.update(toAccount, date);
+                    accountLedgerCallbackHandler.update(toAccount, date, type, fromAccount, toAccount, Float.parseFloat(amount));
                     break;
                 case "Subtract":
                     accountLedger.subtract(fromAccount, Float.parseFloat(amount));
-                    accountLedgerCallbackHandler.update(fromAccount, date);
+                    accountLedgerCallbackHandler.update(fromAccount, date, type, fromAccount, toAccount, Float.parseFloat(amount));
                     break;
                 case "TopUp":
                     accountLedger.topUp(fromAccount, toAccount, Float.parseFloat(amount));
-                    accountLedgerCallbackHandler.update(toAccount, date);
-                    accountLedgerCallbackHandler.update(fromAccount, date);
+                    accountLedgerCallbackHandler.update(toAccount, date, type, fromAccount, toAccount, Float.parseFloat(amount));
+                    accountLedgerCallbackHandler.update(fromAccount, date, type, fromAccount, toAccount, Float.parseFloat(amount));
                     break;
                 case "Transfer":
                     accountLedger.transfer(fromAccount, toAccount, Float.parseFloat(amount));
-                    accountLedgerCallbackHandler.update(toAccount, date);
-                    accountLedgerCallbackHandler.update(fromAccount, date);
+                    accountLedgerCallbackHandler.update(toAccount, date, type, fromAccount, toAccount, Float.parseFloat(amount));
+                    accountLedgerCallbackHandler.update(fromAccount, date, type, fromAccount, toAccount, Float.parseFloat(amount));
                     break;
                 case "Distribute":
                     List<String> toAccounts = new ArrayList<>();
                     List<Float> percentages = new ArrayList<>();
                     String[] accountPercentages = toAccount.split(";");
+                    float fromAccAmount = accountLedger.getAmount(fromAccount);
                     for (String valPair : accountPercentages) {
                         String[] accountAndPercentage = valPair.split(":");
                         toAccounts.add(accountAndPercentage[0]);
@@ -72,9 +81,13 @@ public class AccountLedgerCallbackTest {
                     }
                     accountLedger.distrubute(fromAccount, toAccounts, percentages);
 
-                    accountLedgerCallbackHandler.update(fromAccount, date);
-                    for (String toAcc : toAccounts)
-                        accountLedgerCallbackHandler.update(toAcc, date);
+                    float totalPercentage = 0;
+                    for (int i = 0; i < toAccounts.size(); i++) {
+                        totalPercentage += percentages.get(i);
+                        String toAcc = toAccounts.get(i);
+                        accountLedgerCallbackHandler.update(toAcc, date, "Transfer-Distribute", fromAccount, toAcc, fromAccAmount * percentages.get(i) / 100f);
+                    }
+                    accountLedgerCallbackHandler.update(fromAccount, date, "Transfer-Distribute", fromAccount, toAccount, fromAccAmount * totalPercentage / 100f);
                     break;
             }
         }

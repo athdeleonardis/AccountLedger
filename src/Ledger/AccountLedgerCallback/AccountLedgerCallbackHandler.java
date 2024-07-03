@@ -3,20 +3,15 @@ package Ledger.AccountLedgerCallback;
 import Ledger.AccountLedger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
 public class AccountLedgerCallbackHandler {
     private HashMap<String, List<AccountLedgerCallback>> accountToCallbacksMap;
-    private AccountLedger accountLedger;
 
     public AccountLedgerCallbackHandler() {
         this.accountToCallbacksMap = new HashMap<>();
-    }
-
-    public AccountLedgerCallbackHandler setAccountLedger(AccountLedger accountLedger) {
-        this.accountLedger = accountLedger;
-        return this;
     }
 
     public AccountLedgerCallbackHandler addCallback(String account, AccountLedgerCallback callback) {
@@ -26,12 +21,20 @@ public class AccountLedgerCallbackHandler {
         return this;
     }
 
-    public AccountLedgerCallbackHandler update(String account, String date) {
+    public AccountLedgerCallbackHandler update(String account, String date, String type, String fromAccount, String toAccount, float amount) {
+        System.out.println("Updating account '" + account + "'.");
         if (!accountToCallbacksMap.containsKey(account))
             return this;
-        float amount = accountLedger.getAmount(account);
         for (AccountLedgerCallback callback : accountToCallbacksMap.get(account)) {
-            callback.update(date, amount);
+            System.out.println("Using a callback");
+            callback.update(date, type, toAccount, fromAccount, amount);
+        }
+        return this;
+    }
+
+    public AccountLedgerCallbackHandler update(Collection<String> accounts, String date, String type, String toAccount, String fromAccount, float amount) {
+        for (String account : accounts) {
+            update(account, date, type, toAccount, fromAccount, amount);
         }
         return this;
     }

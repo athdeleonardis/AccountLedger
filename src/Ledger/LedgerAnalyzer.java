@@ -1,6 +1,7 @@
 package Ledger;
 
 import CSV.CSV;
+import Ledger.AccountLedgerCallback.AccountLedgerCallbackHandler;
 
 import java.util.List;
 import java.util.Set;
@@ -10,6 +11,7 @@ public class LedgerAnalyzer {
     private CSVLedgerParser csvLedgerParser;
     private AccountGrouper accountGrouper;
     private AccountLedger accountLedger;
+    private AccountLedgerCallbackHandler callbackHandler;
 
     public LedgerAnalyzer() {
         this.csvLedgerParser = new CSVLedgerParser();
@@ -28,6 +30,11 @@ public class LedgerAnalyzer {
 
     public LedgerAnalyzer setAccountLedger(AccountLedger accountLedger) {
         this.accountLedger = accountLedger;
+        return this;
+    }
+
+    public LedgerAnalyzer setCallbackHandler(AccountLedgerCallbackHandler callbackHandler) {
+        this.callbackHandler = callbackHandler;
         return this;
     }
 
@@ -58,18 +65,38 @@ public class LedgerAnalyzer {
     }
 
     private void add() {
+        String date = csvLedgerParser.getDate();
+        String fromAccount = csvLedgerParser.getFromAccount();
         Set<String> toAccounts = accountGrouper.getGroups(csvLedgerParser.getToAccount());
         float amount = csvLedgerParser.getAmount();
         for (String account : toAccounts) {
             accountLedger.add(account, amount);
+            callbackHandler.update(
+                    account,
+                    date,
+                    "Add",
+                    fromAccount,
+                    account,
+                    amount
+            );
         }
     }
 
     private void subtract() {
+        String date = csvLedgerParser.getDate();
         Set<String> fromAccounts = accountGrouper.getGroups(csvLedgerParser.getFromAccount());
+        String toAccount = csvLedgerParser.getToAccount();
         float amount = csvLedgerParser.getAmount();
         for (String account : fromAccounts) {
             accountLedger.subtract(account, amount);
+            callbackHandler.update(
+                    account,
+                    date,
+                    "Subtract",
+                    account,
+                    toAccount,
+                    amount
+            );
         }
     }
 
@@ -98,6 +125,7 @@ public class LedgerAnalyzer {
         for (int i = 0; i < toAccountsUngrouped.size(); i++) {
             Set<String> fromAccounts = accountGrouper.getGroups(csvLedgerParser.getFromAccount());
             Set<String> toAccounts = accountGrouper.getGroups(toAccountsUngrouped.get(i));
+            AccountGrouper.removeCommonAccounts(fromAccounts, toAccounts);
             float amount = fromAccountAmount * percentages.get(i) / 100f;
             transfer(fromAccounts, toAccounts, amount);
         }
@@ -109,6 +137,15 @@ public class LedgerAnalyzer {
         }
         for (String account : toAccounts) {
             accountLedger.add(account, amount);
+        }
+        String date = csvLedgerParser.getDate();
+        String fromAccount = csvLedgerParser.getFromAccount();
+        String toAccount = csvLedgerParser.getToAccount();
+        for (String account : fromAccounts) {
+            callbackHandler.update(account, date, "Transfer-Distribute", account, toAccount, amount);
+        }
+        for (String account : toAccounts) {
+            callbackHandler.update(account, date, "Transfer-Distribute", fromAccount, account, amount);
         }
     }
 }

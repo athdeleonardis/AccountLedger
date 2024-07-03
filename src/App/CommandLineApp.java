@@ -25,10 +25,11 @@ public class CommandLineApp {
         CSV csvLedger = null;
         AccountLedger accountLedger = new AccountLedger();
         AccountGrouper accountGrouper = new AccountGrouper();
-        AccountLedgerCallbackHandler accountLedgerCallbackHandler = new AccountLedgerCallbackHandler();
+        AccountLedgerCallbackHandler callbackHandler = new AccountLedgerCallbackHandler();
 
         LedgerAnalyzer ledgerAnalyzer = new LedgerAnalyzer()
                 .setAccountGrouper(accountGrouper)
+                .setCallbackHandler(callbackHandler)
                 .setAccountLedger(accountLedger);
 
         Set<String> accountsToSummarize = new TreeSet<>();
@@ -102,7 +103,7 @@ public class CommandLineApp {
                     null,
                     0
             );
-            accountLedgerCallbackHandler.addCallback(accToSummarize, accountLedgerTimeLine);
+            callbackHandler.addCallback(accToSummarize, accountLedgerTimeLine);
             timeLines.add(accountLedgerTimeLine);
         }
 

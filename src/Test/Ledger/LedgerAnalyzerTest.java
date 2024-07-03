@@ -4,6 +4,7 @@ import CSV.CSV;
 import CSV.CSVFileWriter;
 import CSV.CSVFileReader;
 import Ledger.*;
+import Ledger.AccountLedgerCallback.AccountLedgerCallbackHandler;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -28,10 +29,13 @@ public class LedgerAnalyzerTest {
 
         AccountLedger accountLedger = new AccountLedger();
 
+        AccountLedgerCallbackHandler callbackHandler = new AccountLedgerCallbackHandler();
+
         new LedgerAnalyzer()
                 .setAccountLedger(accountLedger)
                 .setCSVLedger(csvLedger)
                 .setAccountGrouper(accountGrouper)
+                .setCallbackHandler(callbackHandler)
                 .analyze();
 
         AccountLedgerToCSV accountLedgerToCSV = new AccountLedgerToCSV();

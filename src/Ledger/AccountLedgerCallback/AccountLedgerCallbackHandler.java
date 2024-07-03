@@ -22,11 +22,9 @@ public class AccountLedgerCallbackHandler {
     }
 
     public AccountLedgerCallbackHandler update(String account, String date, String type, String fromAccount, String toAccount, float amount) {
-        System.out.println("Updating account '" + account + "'.");
         if (!accountToCallbacksMap.containsKey(account))
             return this;
         for (AccountLedgerCallback callback : accountToCallbacksMap.get(account)) {
-            System.out.println("Using a callback");
             callback.update(date, type, toAccount, fromAccount, amount);
         }
         return this;

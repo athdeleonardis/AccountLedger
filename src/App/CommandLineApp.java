@@ -11,17 +11,15 @@ import Ledger.AccountLedgerCallback.AccountLedgerTimeLine;
 import Ledger.AccountLedgerToCSV;
 import Ledger.LedgerAnalyzer;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class CommandLineApp {
     private static final String argDebugLog = "-d";
     private static final String argInputLedger = "-i"; // -i ledgerName
     private static final String argInputSummaries = "-s"; // -s acc1,acc2,acc3... Accounts to make summary files of
     private static final String argGroupAccounts = "-g"; // -g group acc1,acc2,acc3...
-    private static final String argSplitAccount = "-sp"; // -sp accountName
+    private static final String argSplitAccount = "-sp"; // -sp acc1,acc2,acc3... Accounts to split their lines into separate files
+    private static final String argSplitAccounts = "-sps"; // -sps acc1,acc2,acc3... Accounts to split their lines into the same file
 
     public static void main(String[] args) {
         boolean doDebugLog = false;
@@ -38,6 +36,7 @@ public class CommandLineApp {
         Set<String> accountsToSummarize = new TreeSet<>();
         List<AccountLedgerTimeLine> timeLines = new ArrayList<>();
         List<String> accountsToSplit = new ArrayList<>();
+        List<List<String>> accountsToSplitTogether = new ArrayList<>();
         List<AccountLedgerSplit> splits = new ArrayList<>();
 
         // Read args
@@ -90,7 +89,14 @@ public class CommandLineApp {
                     break;
                 case argSplitAccount:
                     argi++;
-                    accountsToSplit.add(args[argi]);
+                    String[] accounts3 = args[argi].split(",");
+                    for (String acc : accounts3)
+                        accountsToSplit.add(acc);
+                    argi++;
+                    break;
+                case argSplitAccounts:
+                    argi++;
+                    accountsToSplitTogether.add(Arrays.asList(args[argi].split(",")));
                     argi++;
                     break;
                 default:
@@ -120,6 +126,19 @@ public class CommandLineApp {
         for (String accToSplit : accountsToSplit) {
             AccountLedgerSplit split = new AccountLedgerSplit(csvLedger.getName(), accToSplit);
             callbackHandler.addCallback(accToSplit, split);
+            splits.add(split);
+        }
+
+        for (List<String> accs : accountsToSplitTogether) {
+            String accsStr = "";
+            for (int i = 0; i < accs.size(); i++) {
+                accsStr += accs.get(i);
+                if (i != accs.size()-1)
+                    accsStr += "-";
+            }
+            AccountLedgerSplit split = new AccountLedgerSplit(csvLedger.getName(), accsStr);
+            for (String acc : accs)
+                callbackHandler.addCallback(acc, split);
             splits.add(split);
         }
 

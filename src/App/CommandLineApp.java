@@ -7,6 +7,7 @@ import Ledger.AccountGrouper;
 import Ledger.AccountLedger;
 import Ledger.AccountLedgerCallback.AccountLedgerCallbackHandler;
 import Ledger.AccountLedgerCallback.AccountLedgerTimeLine;
+import Ledger.AccountLedgerToCSV;
 import Ledger.LedgerAnalyzer;
 
 import java.util.ArrayList;
@@ -109,7 +110,22 @@ public class CommandLineApp {
 
         ledgerAnalyzer.analyze();
 
+        // Write analysis to files
+
         CSVFileWriter csvFileWriter = new CSVFileWriter();
+
+        {
+            CSV accountLedgerSummary = new AccountLedgerToCSV()
+                    .setAccountLedger(accountLedger)
+                    .compile(csvLedger.getName() + "-Summary");
+            if (doDebugLog) {
+                System.out.println("Contents of CSV '" + accountLedgerSummary.getName() + "'.");
+                System.out.println(accountLedgerSummary);
+            }
+            csvFileWriter
+                    .setCSV(accountLedgerSummary)
+                    .compile("data/" + accountLedgerSummary.getName() + ".csv");
+        }
 
         for (AccountLedgerTimeLine timeLine : timeLines) {
             CSV csvTimeLine = timeLine.getTimeline();

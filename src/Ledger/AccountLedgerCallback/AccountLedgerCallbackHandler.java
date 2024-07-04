@@ -25,14 +25,14 @@ public class AccountLedgerCallbackHandler {
         if (!accountToCallbacksMap.containsKey(account))
             return this;
         for (AccountLedgerCallback callback : accountToCallbacksMap.get(account)) {
-            callback.update(date, type, toAccount, fromAccount, amount);
+            callback.update(date, type, fromAccount, toAccount, amount);
         }
         return this;
     }
 
     public AccountLedgerCallbackHandler update(Collection<String> accounts, String date, String type, String toAccount, String fromAccount, float amount) {
         for (String account : accounts) {
-            update(account, date, type, toAccount, fromAccount, amount);
+            update(account, date, type, fromAccount, toAccount, amount);
         }
         return this;
     }

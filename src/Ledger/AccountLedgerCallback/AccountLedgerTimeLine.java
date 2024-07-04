@@ -16,7 +16,7 @@ public class AccountLedgerTimeLine implements AccountLedgerCallback {
     public AccountLedgerTimeLine(AccountLedger accountLedger, String accountOfInterest, String csvParentName, String startingDate, float startingTotal) {
         this.accountLedger = accountLedger;
         this.accountOfInterest = accountOfInterest;
-        this.timeline = new CSV(csvParentName + "-" + "TimeLine");
+        this.timeline = new CSV(csvParentName + "-TimeLine-" + accountOfInterest);
         this.timeline.setColumnNames(Arrays.asList("Date", "Amount"));
         this.currentDate = startingDate;
         this.total = startingTotal;

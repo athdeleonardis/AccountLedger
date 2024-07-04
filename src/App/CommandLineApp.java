@@ -6,6 +6,7 @@ import CSV.CSVFileWriter;
 import Ledger.AccountGrouper;
 import Ledger.AccountLedger;
 import Ledger.AccountLedgerCallback.AccountLedgerCallbackHandler;
+import Ledger.AccountLedgerCallback.AccountLedgerSplit;
 import Ledger.AccountLedgerCallback.AccountLedgerTimeLine;
 import Ledger.AccountLedgerToCSV;
 import Ledger.LedgerAnalyzer;
@@ -17,9 +18,10 @@ import java.util.TreeSet;
 
 public class CommandLineApp {
     private static final String argDebugLog = "-d";
-    private static final String argInputLedger = "-i";
+    private static final String argInputLedger = "-i"; // -i ledgerName
     private static final String argInputSummaries = "-s"; // -s acc1,acc2,acc3... Accounts to make summary files of
     private static final String argGroupAccounts = "-g"; // -g group acc1,acc2,acc3...
+    private static final String argSplitAccount = "-sp"; // -sp accountName
 
     public static void main(String[] args) {
         boolean doDebugLog = false;
@@ -35,6 +37,8 @@ public class CommandLineApp {
 
         Set<String> accountsToSummarize = new TreeSet<>();
         List<AccountLedgerTimeLine> timeLines = new ArrayList<>();
+        List<String> accountsToSplit = new ArrayList<>();
+        List<AccountLedgerSplit> splits = new ArrayList<>();
 
         // Read args
         int argi = 0;
@@ -84,6 +88,11 @@ public class CommandLineApp {
                         accountGrouper.setRelationship(group, acc2);
                     argi++;
                     break;
+                case argSplitAccount:
+                    argi++;
+                    accountsToSplit.add(args[argi]);
+                    argi++;
+                    break;
                 default:
                     System.out.println("Error: Unexpected argument '" + args[argi] + "'.");
                     System.exit(1);
@@ -100,12 +109,18 @@ public class CommandLineApp {
             AccountLedgerTimeLine accountLedgerTimeLine = new AccountLedgerTimeLine(
                     accountLedger,
                     accToSummarize,
-                    csvLedger.getName() + "-" + accToSummarize,
+                    csvLedger.getName(),
                     null,
                     0
             );
             callbackHandler.addCallback(accToSummarize, accountLedgerTimeLine);
             timeLines.add(accountLedgerTimeLine);
+        }
+
+        for (String accToSplit : accountsToSplit) {
+            AccountLedgerSplit split = new AccountLedgerSplit(csvLedger.getName(), accToSplit);
+            callbackHandler.addCallback(accToSplit, split);
+            splits.add(split);
         }
 
         ledgerAnalyzer.analyze();
@@ -136,6 +151,17 @@ public class CommandLineApp {
             csvFileWriter
                     .setCSV(csvLedger)
                     .compile("data/" + csvTimeLine.getName() + ".csv");
+        }
+
+        for (AccountLedgerSplit split : splits) {
+            CSV csvSplit = split.getCSV();
+            if (doDebugLog) {
+                System.out.println("Contents of CSV '" + csvSplit.getName() + "':");
+                System.out.println(csvSplit);
+            }
+            csvFileWriter
+                    .setCSV(csvSplit)
+                    .compile("data/" + csvSplit.getName() + ".csv");
         }
     }
 }

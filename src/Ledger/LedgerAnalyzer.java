@@ -105,7 +105,7 @@ public class LedgerAnalyzer {
         Set<String> toAccounts = accountGrouper.getGroups(csvLedgerParser.getToAccount());
         AccountGrouper.removeCommonAccounts(fromAccounts, toAccounts);
         float amount = csvLedgerParser.getAmount();
-        transfer(fromAccounts, toAccounts, amount);
+        transfer(null, fromAccounts, toAccounts, amount);
     }
 
     private void topUp() {
@@ -114,7 +114,7 @@ public class LedgerAnalyzer {
         Set<String> toAccounts = accountGrouper.getGroups(toAccount);
         AccountGrouper.removeCommonAccounts(fromAccounts, toAccounts);
         float amount = accountLedger.getTopUpDifference(toAccount, csvLedgerParser.getAmount());
-        transfer(fromAccounts, toAccounts, amount);
+        transfer("TopUp", fromAccounts, toAccounts, amount);
     }
 
     private void distribute() {
@@ -127,11 +127,12 @@ public class LedgerAnalyzer {
             Set<String> toAccounts = accountGrouper.getGroups(toAccountsUngrouped.get(i));
             AccountGrouper.removeCommonAccounts(fromAccounts, toAccounts);
             float amount = fromAccountAmount * percentages.get(i) / 100f;
-            transfer(fromAccounts, toAccounts, amount);
+            transfer("Distribute", fromAccounts, toAccounts, amount);
         }
     }
 
-    private void transfer(Set<String> fromAccounts, Set<String> toAccounts, float amount) {
+    private void transfer(String type, Set<String> fromAccounts, Set<String> toAccounts, float amount) {
+        type = (type == null) ? "Transfer" : "Transfer-" + type;
         for (String account : fromAccounts) {
             accountLedger.subtract(account, amount);
         }
@@ -142,10 +143,10 @@ public class LedgerAnalyzer {
         String fromAccount = csvLedgerParser.getFromAccount();
         String toAccount = csvLedgerParser.getToAccount();
         for (String account : fromAccounts) {
-            callbackHandler.update(account, date, "Transfer-Distribute", account, toAccount, amount);
+            callbackHandler.update(account, date, type, account, toAccount, amount);
         }
         for (String account : toAccounts) {
-            callbackHandler.update(account, date, "Transfer-Distribute", fromAccount, account, amount);
+            callbackHandler.update(account, date, type, fromAccount, account, amount);
         }
     }
 }
